@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}<span data-i18n="create_transfer">O'tkazma yaratish</span>{% endblock %}
+{% block page_header %}<span data-i18n="create_transfer">Yangi o'tkazma yaratish</span>{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0" data-i18n="transfer_info">O'tkazma ma'lumotlari</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.from_wallet.id_for_label }}" class="form-label" data-i18n="from_wallet">Qaysi hamyondan</label>
+                            {{ form.from_wallet }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.to_wallet.id_for_label }}" class="form-label" data-i18n="to_wallet">Qaysi hamyonga</label>
+                            {{ form.to_wallet }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.from_amount.id_for_label }}" class="form-label" data-i18n="amount">Miqdor</label>
+                        {{ form.from_amount }}
+                        <div class="form-text" id="balance_info"></div>
+                    </div>
+
+                    <div class="mb-3" id="exchange_rate_field" style="display: none;">
+                        <label for="{{ form.exchange_rate.id_for_label }}" class="form-label" data-i18n="exchange_rate">Kurs</label>
+                        {{ form.exchange_rate }}
+                        <div class="form-text" id="exchange_rate_info"></div>
+                    </div>
+
+                    <div class="alert alert-info" id="to_amount_info" style="display: none;">
+                        <i class="fas fa-calculator me-2"></i>
+                        <span data-i18n="receiver">Qabul qiluvchi</span>: <span id="to_amount_text"></span>
+                    </div>
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                        <small>{{ error }}</small><br>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'transfer_list' %}" class="btn btn-outline-secondary" data-i18n="back">Orqaga</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i> <span data-i18n="make_transfer">O'tkazmani amalga oshirish</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const wallets = {{ wallets_data|safe }} || {};
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const fromWalletSelect = document.querySelector('#id_from_wallet');
+        const toWalletSelect = document.querySelector('#id_to_wallet');
+        const fromAmountInput = document.querySelector('#id_from_amount');
+        const exchangeRateField = document.querySelector('#exchange_rate_field');
+        const exchangeRateInput = document.querySelector('#id_exchange_rate');
+        const exchangeRateInfo = document.querySelector('#exchange_rate_info');
+        const toAmountInfo = document.querySelector('#to_amount_info');
+        const toAmountText = document.querySelector('#to_amount_text');
+        const balanceInfo = document.querySelector('#balance_info');
+
+        // Update wallet info
+        function updateWalletInfo() {
+            if (!fromWalletSelect.value) return;
+
+            const fromWalletId = fromWalletSelect.value;
+
+            if (wallets[fromWalletId]) {
+                const wallet = wallets[fromWalletId];
+                balanceInfo.textContent = t('balance') + ': ' + wallet.balance + ' ' + wallet.currency;
+            }
+        }
+
+        // Update exchange rate info
+        function updateExchangeRateInfo() {
+            if (!fromWalletSelect.value || !toWalletSelect.value) return;
+
+            const fromWalletId = fromWalletSelect.value;
+            const toWalletId = toWalletSelect.value;
+
+            if (wallets[fromWalletId] && wallets[toWalletId]) {
+                const fromCurrency = wallets[fromWalletId].currency;
+                const toCurrency = wallets[toWalletId].currency;
+
+                if (fromCurrency === toCurrency) {
+                    exchangeRateField.style.display = 'none';
+                    exchangeRateInput.value = '';
+                    exchangeRateInfo.textContent = '';
+                } else {
+                    exchangeRateField.style.display = 'block';
+                    exchangeRateInfo.textContent = `1 ${fromCurrency} = ? ${toCurrency}`;
+                }
+            }
+        }
+
+        // Update to amount info
+        function updateToAmountInfo() {
+            if (!fromWalletSelect.value || !toWalletSelect.value || !fromAmountInput.value) return;
+
+            const fromWalletId = fromWalletSelect.value;
+            const toWalletId = toWalletSelect.value;
+            const fromAmount = parseFloat(fromAmountInput.value);
+
+            if (wallets[fromWalletId] && wallets[toWalletId] && !isNaN(fromAmount)) {
+                const fromCurrency = wallets[fromWalletId].currency;
+                const toCurrency = wallets[toWalletId].currency;
+
+                let toAmount = fromAmount;
+
+                if (fromCurrency !== toCurrency && exchangeRateInput.value) {
+                    const exchangeRate = parseFloat(exchangeRateInput.value);
+                    if (!isNaN(exchangeRate)) {
+                        toAmount = fromAmount * exchangeRate;
+                    }
+                }
+
+                toAmountText.textContent = `${toAmount.toFixed(2)} ${toCurrency}`;
+                toAmountInfo.style.display = 'block';
+            } else {
+                toAmountInfo.style.display = 'none';
+            }
+        }
+
+        // Event listeners
+        fromWalletSelect.addEventListener('change', function() {
+            updateWalletInfo();
+            updateExchangeRateInfo();
+            updateToAmountInfo();
+        });
+
+        toWalletSelect.addEventListener('change', function() {
+            updateExchangeRateInfo();
+            updateToAmountInfo();
+        });
+
+        fromAmountInput.addEventListener('input', updateToAmountInfo);
+        exchangeRateInput.addEventListener('input', updateToAmountInfo);
+
+        // Initialize
+        updateWalletInfo();
+        updateExchangeRateInfo();
+    });
+</script>
+{% endblock %}

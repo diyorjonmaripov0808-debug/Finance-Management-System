@@ -1,0 +1,101 @@
+/* Finance App - Custom CSS */
+
+:root {
+    --primary-color: #4361ee;
+    --secondary-color: #3f37c9;
+    --success-color: #4cc9f0;
+    --warning-color: #f72585;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+}
+
+/* Message Styles */
+.status-success {
+    color: #28a745;
+}
+
+.status-danger {
+    color: #dc3545;
+}
+
+.status-info {
+    color: #17a2b8;
+}
+
+/* Form Styling */
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+}
+
+.invalid-feedback {
+    display: block;
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Button Customization */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+/* Table Styling */
+.table-hover tbody tr:hover {
+    background-color: rgba(67, 97, 238, 0.05);
+}
+
+/* Responsive Utilities */
+@media (max-width: 768px) {
+    .sidebar {
+        position: relative;
+        min-height: auto;
+        width: 100%;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+}
+
+/* No Data Indicator */
+.no-data {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+}
+
+.no-data i {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+/* Animation */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Chart Styling */
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin: 20px 0;
+}

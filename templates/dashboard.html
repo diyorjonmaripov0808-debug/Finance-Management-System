@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load finance_filters %}
+
+{% block title %}<span data-i18n="dashboard">Dashboard</span>{% endblock %}
+
+{% block page_header %}<span data-i18n="dashboard">Dashboard</span>{% endblock %}
+
+{% block page_actions %}
+<div class="btn-toolbar mb-2 mb-md-0">
+    <div class="btn-group me-2">
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-i18n="daily">Bugun</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-i18n="weekly">Hafta</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-i18n="monthly">Oy</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Stat Cards -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title text-muted mb-0" data-i18n="total_balance">Umumiy balans</h5>
+                        <div class="small text-muted mt-2">
+                            {% for currency, amount in balance_by_currency.items %}
+                            <div>{{ amount|floatformat:2 }} {{ currency }}</div>
+                            {% empty %}
+                            <div class="text-muted" data-i18n="no_wallets">Hamyonlar yo'q</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-wallet fa-3x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card income-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title text-muted mb-0" data-i18n="daily_income">Kunlik kirim</h5>
+                        <div class="small text-success mt-2">
+                            {% for currency, amount in daily_income_by_currency.items %}
+                            <div>{{ amount|floatformat:2 }} {{ currency }}</div>
+                            {% empty %}
+                            <div class="text-muted" data-i18n="no_income">Kirim yo'q</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-arrow-down fa-3x text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card expense-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title text-muted mb-0" data-i18n="daily_expense">Kunlik chiqim</h5>
+                        <div class="small text-danger mt-2">
+                            {% for currency, amount in daily_expense_by_currency.items %}
+                            <div>{{ amount|floatformat:2 }} {{ currency }}</div>
+                            {% empty %}
+                            <div class="text-muted" data-i18n="no_expense">Chiqim yo'q</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-arrow-up fa-3x text-danger"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title text-muted mb-0" data-i18n="wallets">Hamyonlar</h5>
+                        <h2 class="mb-0">{{ wallet_count }}</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-credit-card fa-3x text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Transactions -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0" data-i18n="recent_transactions">So'nggi tranzaksiyalar</h5>
+                <a href="{% url 'transaction_list' %}" class="btn btn-sm btn-primary" data-i18n="view_all">Barchasi</a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th data-i18n="category">Kategoriya</th>
+                                <th data-i18n="wallet">Hamyon</th>
+                                <th data-i18n="amount">Miqdor</th>
+                                <th data-i18n="date">Sana</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in recent_transactions %}
+                            <tr>
+                                <td>
+                                    <span class="badge {% if transaction.category.type == 'income' %}badge-income{% else %}badge-expense{% endif %}">
+                                        {{ transaction.category.name }}
+                                    </span>
+                                </td>
+                                <td>{{ transaction.wallet|wallet_summary }}</td>
+                                <td>
+                                    <strong class="{% if transaction.category.type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                                        {% if transaction.category.type == 'income' %}+{% else %}-{% endif %}
+                                        {{ transaction.amount|floatformat:2 }} {{ transaction.currency }}
+                                    </strong>
+                                </td>
+                                <td>{{ transaction.created_at|date:"d.m.Y H:i" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center" data-i18n="no_data">Hozircha tranzaksiyalar mavjud emas</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0" data-i18n="quick_actions">Tezkor amallar</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-3">
+                    <a href="{% url 'income_create' %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-arrow-up me-2"></i> <span data-i18n="add_income">Kirim qo'shish</span>
+                    </a>
+
+                    <a href="{% url 'expense_create' %}" class="btn btn-danger btn-lg">
+                        <i class="fas fa-arrow-down me-2"></i> <span data-i18n="add_expense">Chiqim qo'shish</span>
+                    </a>
+
+                    <a href="{% url 'transfer_create' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-money-bill-transfer me-2"></i> <span data-i18n="add_transfer">O'tkazma qilish</span>
+                    </a>
+
+                    <a href="{% url 'wallet_create' %}" class="btn btn-warning btn-lg">
+                        <i class="fas fa-wallet me-2"></i> <span data-i18n="add_wallet">Yangi hamyon qo'shish</span>
+                    </a>
+
+                    <a href="{% url 'category_create' %}" class="btn btn-info btn-lg">
+                        <i class="fas fa-tag me-2"></i> <span data-i18n="add_category">Kategoriya qo'shish</span>
+                    </a>
+                </div>
+
+                <hr class="my-4">
+
+                <h6 data-i18n="wallets_balance">Hamyonlar balansi</h6>
+                <div class="list-group">
+                    {% for wallet in wallets %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                            <i class="fas fa-{% if wallet.wallet_type == 'karta' %}credit-card{% else %}money-bill{% endif %} me-2"></i>
+                            {{ wallet|wallet_summary }}
+                        </div>
+                        <span class="badge bg-primary rounded-pill">{{ wallet.balance|floatformat:2 }} {{ wallet.currency }}</span>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-center" data-i18n="no_wallets">Hamyonlar mavjud emas</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

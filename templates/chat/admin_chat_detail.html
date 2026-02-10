@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Chat" %} - {{ chat_user.phone_number }}{% endblock %}
+
+{% block page_header %}<span data-i18n="messages">{% trans "Xabarlar" %}</span>{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-user me-2"></i>
+                    <strong>{{ chat_user.first_name|default:"Foydalanuvchi" }}</strong>
+                    <span class="badge bg-light text-dark ms-2">{{ chat_user.phone_number }}</span>
+                </div>
+                <div>
+                    <a href="{% url 'admin_chat_list' %}" class="btn btn-sm btn-light">
+                        <i class="fas fa-arrow-left me-1"></i> <span data-i18n="back">{% trans "Orqaga" %}</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Chat Messages -->
+            <div class="card-body" style="height: 400px; overflow-y: auto;" id="chat_messages">
+                {% for message in chat_messages %}
+                <div class="chat-message {% if message.sender == request.user %}sent{% else %}received{% endif %} p-3 mb-2">
+                    <div class="message-content">
+                        {{ message.text }}
+                    </div>
+                    <div class="message-time text-end">
+                        {{ message.created_at|date:"H:i" }}
+                        {% if message.sender == request.user and message.is_read %}
+                        <i class="fas fa-check-double text-info ms-1"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5">
+                    <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                    <h5 data-i18n="no_messages">{% trans "Xabarlar yo'q" %}</h5>
+                    <p class="text-muted" data-i18n="start_chat_with_user">{% trans "Foydalanuvchi bilan suhbatni boshlang" %}</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Chat Input -->
+            <div class="card-footer">
+                <form method="post" id="message_form">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        {{ form.text }}
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Info -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0" data-i18n="user_info">{% trans "Foydalanuvchi ma'lumotlari" %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                        <i class="fas fa-user fa-2x"></i>
+                    </div>
+                    <h5 class="mt-3 mb-0">{{ chat_user.first_name|default:"Foydalanuvchi" }}</h5>
+                    <p class="text-muted">{{ chat_user.phone_number }}</p>
+                </div>
+
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span data-i18n="user_status">{% trans "Holati" %}</span>
+                        <span class="badge bg-success" id="user_status">{{ chat_user.get_auth_status_display }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span data-i18n="wallets_count">{% trans "Hamyonlar soni" %}</span>
+                        <span class="badge bg-primary" id="user_wallets_count">{{ chat_user.wallets.count }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span data-i18n="last_activity">{% trans "So'nggi faollik" %}</span>
+                        <span class="badge bg-light text-dark" id="user_last_activity">{{ chat_user.updated_at|timesince }} <span data-i18n="ago">{% trans "oldin" %}</span></span>
+                    </li>
+                </ul>
+
+                <div class="mt-3">
+                    <a href="/admin/users/user/{{ chat_user.id }}/change/" class="btn btn-outline-primary btn-sm w-100" target="_blank">
+                        <i class="fas fa-external-link-alt me-2"></i> <span data-i18n="open_in_admin_panel">{% trans "Admin panelda ochish" %}</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="{% static 'js/chat.js' %}"></script>
+{% endblock %}
+{% endblock %}

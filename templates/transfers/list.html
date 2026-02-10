@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load finance_filters %}
+
+{% block title %}<span data-i18n="transfers">O'tkazmalar</span>{% endblock %}
+
+{% block page_header %}<span data-i18n="transfer_list">O'tkazmalar tarixi</span>{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'transfer_create' %}" class="btn btn-primary">
+    <i class="fas fa-plus me-2"></i> <span data-i18n="add_transfer">Yangi o'tkazma</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    {% for transfer in transfers %}
+    <div class="col-12 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center">
+                            <div class="text-center me-4">
+                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                    <i class="fas fa-wallet text-primary"></i>
+                                </div>
+                                <small class="text-muted">{{ transfer.from_wallet|wallet_summary }}</small>
+                            </div>
+                            <div class="text-center mx-4">
+                                <i class="fas fa-arrow-right fa-2x text-success"></i>
+                            </div>
+                            <div class="text-center ms-4">
+                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                    <i class="fas fa-wallet text-success"></i>
+                                </div>
+                                <small class="text-muted">{{ transfer.to_wallet|wallet_summary }}</small>
+                            </div>
+                            <div class="ms-4">
+                                <h6 class="mb-0" data-i18n="transfer">O'tkazma</h6>
+                                <p class="text-muted mb-0">
+                                    {{ transfer.created_at|date:"d.m.Y H:i" }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <h5 class="text-danger mb-0">-{{ transfer.from_amount|floatformat:2 }} {{ transfer.from_wallet.currency }}</h5>
+                        <h5 class="text-success mb-0">+{{ transfer.to_amount|floatformat:2 }} {{ transfer.to_wallet.currency }}</h5>
+                        {% if transfer.exchange_rate %}
+                        <small class="text-muted"><span data-i18n="exchange_rate">Kurs</span>: {{ transfer.exchange_rate|floatformat:4 }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-money-bill-transfer fa-4x text-muted mb-3"></i>
+                <h4 data-i18n="no_data">O'tkazmalar mavjud emas</h4>
+                <p class="text-muted" data-i18n="add_transfer">Birinchi o'tkazmani yaratish uchun quyidagi tugmani bosing</p>
+                <a href="{% url 'transfer_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i> <span data-i18n="create">O'tkazma yaratish</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

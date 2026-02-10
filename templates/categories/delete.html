@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}<span data-i18n="delete_category">Kategoriyani o'chirish</span>{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0" data-i18n="delete_category">Kategoriyani o'chirish</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
+                    <h4 data-i18n="confirm_delete">Rostdan ham o'chirmoqchimisiz?</h4>
+                    <p class="text-muted">
+                        "{{ category.name }}" kategoriyasini o'chirish
+                    </p>
+                </div>
+
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong data-i18n="attention">Diqqat!</strong> <span data-i18n="category_warning">Bu kategoriyaga tegishli barcha tranzaksiyalar o'chiriladi.</span>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 data-i18n="category_info">Kategoriya ma'lumotlari</h5>
+                        <ul class="list-unstyled">
+                            <li><strong data-i18n="category_name">Nomi:</strong> {{ category.name }}</li>
+                            <li><strong data-i18n="category_type">Turi:</strong>
+                                {% if category.type == 'income' %}
+                                <span class="badge bg-success" data-i18n="income">Kirim</span>
+                                {% else %}
+                                <span class="badge bg-danger" data-i18n="expense">Chiqim</span>
+                                {% endif %}
+                            </li>
+                            <li><strong data-i18n="created_at">Yaratilgan sana:</strong> {{ category.created_at|date:"d.m.Y" }}</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{% url 'category_list' %}" class="btn btn-secondary me-md-2" data-i18n="cancel">Bekor qilish</a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i> <span data-i18n="delete">O'chirish</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load finance_filters %}
+
+{% block title %}<span data-i18n="create_wallet">Hamyon yaratish</span>{% endblock %}
+
+{% block page_header %}<span data-i18n="create_wallet">Yangi hamyon yaratish</span>{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0" data-i18n="wallet_info">Hamyon ma'lumotlari</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.wallet_type.id_for_label }}" class="form-label" data-i18n="wallet_type">Hamyon turi</label>
+                            {{ form.wallet_type }}
+                            {% if form.wallet_type.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.wallet_type.errors %}
+                                <small>{{ error }}</small><br>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.currency.id_for_label }}" class="form-label" data-i18n="currency">Valyuta</label>
+                            {{ form.currency }}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3" id="card_fields" style="display: none;">
+                        <div class="col-md-6">
+                            <label for="{{ form.card_type.id_for_label }}" class="form-label" data-i18n="card_type">Karta turi</label>
+                            {{ form.card_type }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.title.id_for_label }}" class="form-label" data-i18n="title">Karta nomi</label>
+                            {{ form.title }}
+                            <div class="form-text" data-i18n="card_name_example">Masalan: "Humo kartam"</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.balance.id_for_label }}" class="form-label" data-i18n="initial_balance">Boshlang'ich balans</label>
+                        {{ form.balance }}
+                        <div class="form-text" data-i18n="initial_balance_help">Agar mablag' qo'shmoqchi bo'lsangiz, miqdorni kiriting</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.created_at.id_for_label }}" class="form-label" data-i18n="created_at">Yaratilgan vaqt</label>
+                        {{ form.created_at }}
+                        <div class="form-text" data-i18n="created_at_help">Ixtiyoriy. Agar bo'sh qoldirilsa, hozirgi vaqt olinadi.</div>
+                    </div>
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                        <small>{{ error }}</small><br>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'wallet_list' %}" class="btn btn-outline-secondary" data-i18n="back">Orqaga</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i> <span data-i18n="save">Saqlash</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const walletTypeSelect = document.getElementById('id_wallet_type');
+    const cardFields = document.getElementById('card_fields');
+
+    if (!walletTypeSelect || !cardFields) {
+        console.error('Element topilmadi');
+        return;
+    }
+
+    function toggleCardFields() {
+        if (walletTypeSelect.value === 'karta') {
+            cardFields.style.display = 'block';
+        } else {
+            cardFields.style.display = 'none';
+        }
+    }
+
+    toggleCardFields();
+    walletTypeSelect.addEventListener('change', toggleCardFields);
+});
+</script>
+
+{% endblock %}onchange

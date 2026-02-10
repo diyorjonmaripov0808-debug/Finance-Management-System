@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+
+{% block title %}{% trans "Admin Dashboard" %}{% endblock %}
+
+{% block page_header %}<span data-i18n="messages">{% trans "Xabarlar" %}</span>{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold text-primary">
+            <i class="fas fa-comments me-2"></i><span data-i18n="chat_list">{% trans "Chatlar ro'yxati" %}</span>
+        </h5>
+        <div class="d-flex gap-2">
+            <a href="/admin/" class="btn btn-outline-secondary btn-sm rounded-pill" target="_blank">
+                <i class="fas fa-cog me-1"></i> <span data-i18n="admin_panel">{% trans "Django Admin" %}</span>
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 py-3 text-secondary fw-semibold" data-i18n="chat_user">{% trans "Foydalanuvchi" %}</th>
+                        <th class="py-3 text-secondary fw-semibold" data-i18n="latest_message">{% trans "So'nggi xabar" %}</th>
+                        <th class="py-3 text-secondary fw-semibold" data-i18n="status">{% trans "Holat" %}</th>
+                        <th class="py-3 text-secondary fw-semibold text-end pe-4" data-i18n="actions">{% trans "Harakat" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for conv in conversations %}
+                    <tr class="{% if conv.waiting_reply %}bg-light-primary{% endif %}">
+                        <td class="ps-4 py-3">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm bg-primary-soft text-primary rounded-circle d-flex align-items-center justify-content-center me-3">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">{{ conv.user.first_name|default:conv.user.phone_number }}</div>
+                                    <small class="text-muted">{{ conv.user.phone_number }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3">
+                            {% if conv.last_message %}
+                                <div class="text-truncate" style="max-width: 250px;">
+                                    {% if conv.last_message_from_me %}
+                                        <span class="text-muted small"><i class="fas fa-reply me-1"></i><span data-i18n="me">{% trans "Men" %}</span>:</span>
+                                    {% endif %}
+                                    <span class="{% if conv.unread_count > 0 %}fw-bold text-dark{% else %}text-muted{% endif %}">
+                                        {{ conv.last_message.text|truncatechars:50 }}
+                                    </span>
+                                </div>
+                                <div class="small text-muted mt-1">
+                                    <i class="far fa-clock me-1"></i>{{ conv.last_message.created_at|timesince }} <span data-i18n="ago">{% trans "oldin" %}</span>
+                                </div>
+                            {% else %}
+                                <span class="text-muted italic small" data-i18n="no_messages">{% trans "Xabarlar yo'q" %}</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3">
+                            {% if conv.unread_count > 0 %}
+                                <span class="badge bg-danger rounded-pill px-3 shadow-sm">
+                                    {{ conv.unread_count }} <span data-i18n="new_messages_count">{% trans "yangi" %}</span>
+                                </span>
+                            {% elif conv.waiting_reply %}
+                                <span class="badge bg-primary rounded-pill px-3 shadow-sm">
+                                    <i class="fas fa-clock me-1"></i><span data-i18n="waiting_reply">{% trans "Javob kutilmoqda" %}</span>
+                                </span>
+                            {% else %}
+                                <span class="badge bg-light text-muted rounded-pill px-3 border">
+                                    <i class="fas fa-check me-1"></i><span data-i18n="closed">{% trans "Yopilgan" %}</span>
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 text-end pe-4">
+                            <a href="{% url 'admin_chat_detail' conv.id %}" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm">
+                                <span data-i18n="open">{% trans "Ochish" %}</span><i class="fas fa-chevron-right ms-2 small"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5">
+                            <i class="fas fa-comments fa-3x text-muted mb-3 d-block"></i>
+                            <h5 class="text-muted" data-i18n="no_messages">{% trans "Xabarlar yo'q" %}</h5>
+                            <p class="text-secondary small" data-i18n="start_chat_with_users">{% trans "Foydalanuvchilar bilan suhbatni boshlang" %}</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-primary-soft { background-color: rgba(13, 110, 253, 0.1); }
+    .bg-light-primary { background-color: rgba(13, 110, 253, 0.02); }
+    .avatar-sm { width: 40px; height: 40px; }
+</style>
+{% endblock %}

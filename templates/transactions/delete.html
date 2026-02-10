@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load finance_filters %}
+
+{% block title %}<span data-i18n="delete_transaction">Tranzaksiyani o'chirish</span>{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0" data-i18n="delete_transaction">Tranzaksiyani o'chirish</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-exclamation-triangle fa-4x text-warning mb-3"></i>
+                    <h4 data-i18n="confirm_delete">Rostdan ham o'chirmoqchimisiz?</h4>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body text-start">
+                        <h5 data-i18n="transaction_info">Tranzaksiya ma'lumotlari</h5>
+                        <ul class="list-unstyled">
+                            <li><strong data-i18n="category">Kategoriya:</strong>
+                                <span class="badge {% if transaction.category.type == 'income' %}badge-income{% else %}badge-expense{% endif %}">
+                                    {{ transaction.category.name }}
+                                </span>
+                            </li>
+                            <li><strong data-i18n="wallet">Hamyon:</strong> {{ transaction.wallet|wallet_summary }}</li>
+                            <li><strong data-i18n="amount">Miqdor:</strong>
+                                <span class="{% if transaction.category.type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                                    {{ transaction.amount }} {{ transaction.currency }}
+                                </span>
+                            </li>
+                            {% if transaction.exchange_rate %}
+                            <li><strong data-i18n="exchange_rate">Kurs:</strong> {{ transaction.exchange_rate }}</li>
+                            {% endif %}
+                            <li><strong data-i18n="date">Sana:</strong> {{ transaction.created_at|date:"d.m.Y H:i" }}</li>
+                            {% if transaction.description %}
+                            <li><strong data-i18n="description">Izoh:</strong> {{ transaction.description }}</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong data-i18n="attention">Diqqat!</strong> 
+                    {% if transaction.category.type == 'income' %}
+                    <span data-i18n="wallet_balance_will_decrease">Hamyon balansi kamayadi</span>
+                    {% else %}
+                    <span data-i18n="wallet_balance_will_increase">Hamyon balansi ko'payadi</span>
+                    {% endif %}.
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{% url 'transaction_list' %}" class="btn btn-secondary me-md-2" data-i18n="cancel">Bekor qilish</a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i> <span data-i18n="delete">O'chirish</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

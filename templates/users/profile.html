@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}<span data-i18n="profile">Profil</span>{% endblock %}
+
+{% block page_header %}<span data-i18n="update">Profilni yangilash</span>{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0" data-i18n="personal_info">Shaxsiy ma'lumotlar</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label" data-i18n="first_name">Ism</label>
+                            {{ form.first_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label" data-i18n="last_name">Familiya</label>
+                            {{ form.last_name }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label" data-i18n="username">Username</label>
+                        {{ form.username }}
+                        <div class="form-text" data-i18n="changeable">O'zgartirish mumkin</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" data-i18n="phone_number">Telefon raqam</label>
+                        <input type="text" class="form-control" value="{{ user.phone_number }}" disabled>
+                        <div class="form-text" data-i18n="phone_not_changeable">Telefon raqamni o'zgartirib bo'lmaydi</div>
+                    </div>
+
+                    <h5 class="mt-4 mb-3" data-i18n="change_password">Parolni o'zgartirish</h5>
+
+                    <div class="mb-3">
+                        <label for="{{ form.current_password.id_for_label }}" class="form-label" data-i18n="current_password">Joriy parol</label>
+                        {{ form.current_password }}
+                        <div class="form-text" data-i18n="current_password_help">Parolni o'zgartirish uchun joriy parolni kiriting</div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.new_password.id_for_label }}" class="form-label" data-i18n="new_password">Yangi parol</label>
+                            {{ form.new_password }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.confirm_new_password.id_for_label }}" class="form-label" data-i18n="confirm_new_password">Yangi parolni tasdiqlash</label>
+                            {{ form.confirm_new_password }}
+                        </div>
+                    </div>
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                        <small>{{ error }}</small><br>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary" data-i18n="back">Orqaga</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i> <span data-i18n="save">Saqlash</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0" data-i18n="profile_stats">Profil statistikasi</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="fas fa-user fa-2x"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h5 class="mb-0">{{ user.first_name|default:"Foydalanuvchi" }}</h5>
+                        <p class="text-muted mb-0">{{ user.phone_number }}</p>
+                    </div>
+                </div>
+
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span data-i18n="registration_date">Ro'yxatdan o'tgan sana</span>
+                        <span class="badge bg-light text-dark">{{ user.created_at|date:"d.m.Y" }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span data-i18n="account_status">Hisob holati</span>
+                        <span class="badge bg-success">{{ user.get_auth_status_display }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span data-i18n="last_activity">So'nggi faollik</span>
+                        <span class="badge bg-light text-dark">{{ user.updated_at|date:"H:i" }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

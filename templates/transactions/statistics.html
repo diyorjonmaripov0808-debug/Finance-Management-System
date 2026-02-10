@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+{% load finance_filters %}
+
+{% block title %}<span data-i18n="statistics">Statistika</span>{% endblock %}
+
+{% block page_header %}<span data-i18n="statistics">Statistika</span>{% endblock %}
+
+{% block content %}
+<!-- Filter Form -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-filter me-2"></i><span data-i18n="filter_by_period">Davr bo'yicha filter</span></h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3" id="statisticsFilterForm">
+            <div class="col-md-3">
+                <label for="{{ form.period.id_for_label }}" class="form-label" data-i18n="select_period">Davr tanlang</label>
+                {{ form.period }}
+            </div>
+
+            <!-- Kunlik uchun kun dropdown -->
+            <div class="col-md-3" id="day_field" style="display: none;">
+                <label for="{{ form.day.id_for_label }}" class="form-label" data-i18n="day">Kun</label>
+                {{ form.day }}
+            </div>
+
+            <!-- Oylik uchun oy dropdown -->
+            <div class="col-md-3" id="month_field" style="display: none;">
+                <label for="{{ form.month.id_for_label }}" class="form-label" data-i18n="month">Oy</label>
+                {{ form.month }}
+            </div>
+
+            <!-- Yillik uchun yil dropdown -->
+            <div class="col-md-3" id="year_field" style="display: none;">
+                <label for="{{ form.year.id_for_label }}" class="form-label" data-i18n="year">Yil</label>
+                {{ form.year }}
+            </div>
+
+            <!-- Belgilangan muddat uchun sana maydonlari -->
+            <div class="col-md-3" id="start_date_field" style="display: none;">
+                <label for="{{ form.start_date.id_for_label }}" class="form-label" data-i18n="start_date">Boshlanish sanasi</label>
+                {{ form.start_date }}
+            </div>
+
+            <div class="col-md-3" id="end_date_field" style="display: none;">
+                <label for="{{ form.end_date.id_for_label }}" class="form-label" data-i18n="end_date">Tugash sanasi</label>
+                {{ form.end_date }}
+            </div>
+
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search me-2"></i> <span data-i18n="filter">Filtrlash</span>
+                </button>
+            </div>
+        </form>
+        
+        <div class="mt-3">
+            <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                <strong>{{ period_name }}</strong> davr: <strong>{{ date_from|date:"d.m.Y" }}</strong> dan <strong>{{ date_to|date:"d.m.Y" }}</strong> gacha
+            </small>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Cards per currency -->
+<div class="row mb-4">
+    {% for currency, vals in totals_by_currency.items %}
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h6 class="text-muted mb-2"><span data-i18n="total_income">Umumiy kirim</span> ({{ currency }})</h6>
+                <h2 class="text-success">{{ vals.total_income|floatformat:2 }} {{ currency }}</h2>
+                <h6 class="text-muted mb-2 mt-2"><span data-i18n="total_expense">Umumiy chiqim</span> ({{ currency }})</h6>
+                <h2 class="text-danger">{{ vals.total_expense|floatformat:2 }} {{ currency }}</h2>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="row">
+    <!-- Income by Category -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0" data-i18n="income_by_category">Kirimlar bo'yicha kategoriyalar</h5>
+            </div>
+            <div class="card-body">
+                {% if totals_by_currency %}
+                <div class="accordion" id="incomeAccordion">
+                    {% for currency, vals in totals_by_currency.items %}
+                    <div class="accordion-item mb-2">
+                        <h2 class="accordion-header" id="headingIncome{{ forloop.counter }}">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseIncome{{ forloop.counter }}" aria-expanded="false" aria-controls="collapseIncome{{ forloop.counter }}">
+                                <span data-i18n="income">Kirimlar</span> - {{ currency }} ({{ vals.total_income|floatformat:2 }})
+                            </button>
+                        </h2>
+                        <div id="collapseIncome{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="headingIncome{{ forloop.counter }}" data-bs-parent="#incomeAccordion">
+                            <div class="accordion-body">
+                                {% if vals.income_by_category %}
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th data-i18n="category">Kategoriya</th>
+                                                <th><span data-i18n="amount">Miqdor</span> ({{ currency }})</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for cat, amt in vals.income_by_category.items %}
+                                            <tr>
+                                                <td>{{ cat }}</td>
+                                                <td>{{ amt|floatformat:2 }} {{ currency }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <p class="text-muted"><span data-i18n="no_income_data">Kirimlar mavjud emas</span> ({{ currency }})</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
+                    <p data-i18n="no_income_data">Bu davrda kirimlar mavjud emas</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Expense by Category -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0" data-i18n="expense_by_category">Chiqimlar bo'yicha kategoriyalar</h5>
+            </div>
+            <div class="card-body">
+                {% if totals_by_currency %}
+                <div class="accordion" id="expenseAccordion">
+                    {% for currency, vals in totals_by_currency.items %}
+                    <div class="accordion-item mb-2">
+                        <h2 class="accordion-header" id="headingExpense{{ forloop.counter }}">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExpense{{ forloop.counter }}" aria-expanded="false" aria-controls="collapseExpense{{ forloop.counter }}">
+                                <span data-i18n="expense">Chiqimlar</span> - {{ currency }} ({{ vals.total_expense|floatformat:2 }})
+                            </button>
+                        </h2>
+                        <div id="collapseExpense{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="headingExpense{{ forloop.counter }}" data-bs-parent="#expenseAccordion">
+                            <div class="accordion-body">
+                                {% if vals.expense_by_category %}
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th data-i18n="category">Kategoriya</th>
+                                                <th><span data-i18n="amount">Miqdor</span> ({{ currency }})</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for cat, amt in vals.expense_by_category.items %}
+                                            <tr>
+                                                <td>{{ cat }}</td>
+                                                <td>{{ amt|floatformat:2 }} {{ currency }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <p class="text-muted"><span data-i18n="no_expense_data">Chiqimlar mavjud emas</span> ({{ currency }})</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
+                    <p data-i18n="no_expense_data">Bu davrda chiqimlar mavjud emas</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><span data-i18n="transaction_history">Tranzaksiyalar tarixi</span> ({{ date_from|date:"d.m.Y" }} - {{ date_to|date:"d.m.Y" }})</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Income Transactions -->
+                    <div class="col-md-6">
+                        <h6 class="text-success mb-3"><i class="fas fa-arrow-down me-2"></i> <span data-i18n="income">Kirimlar</span></h6>
+                        {% for transaction in income_transactions %}
+                        <div class="card mb-2">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ transaction.category.name }}</strong>
+                                           <small class="text-muted d-block">{{ transaction.wallet|wallet_summary }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="text-success">+{{ transaction.amount }} {{ transaction.currency }}</span>
+                                        <small class="text-muted d-block">{{ transaction.created_at|date:"d.m.Y" }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted" data-i18n="no_income">Kirimlar mavjud emas</p>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Expense Transactions -->
+                    <div class="col-md-6">
+                        <h6 class="text-danger mb-3"><i class="fas fa-arrow-up me-2"></i> <span data-i18n="expense">Chiqimlar</span></h6>
+                        {% for transaction in expense_transactions %}
+                        <div class="card mb-2">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ transaction.category.name }}</strong>
+                                           <small class="text-muted d-block">{{ transaction.wallet|wallet_summary }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="text-danger">-{{ transaction.amount }} {{ transaction.currency }}</span>
+                                        <small class="text-muted d-block">{{ transaction.created_at|date:"d.m.Y" }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted" data-i18n="no_expense">Chiqimlar mavjud emas</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const periodSelect = document.querySelector('#id_period');
+        const dayField = document.querySelector('#day_field');
+        const monthField = document.querySelector('#month_field');
+        const yearField = document.querySelector('#year_field');
+        const startDateField = document.querySelector('#start_date_field');
+        const endDateField = document.querySelector('#end_date_field');
+
+        function toggleFields() {
+            // Barcha maydonlarni yashirish
+            dayField.style.display = 'none';
+            monthField.style.display = 'none';
+            yearField.style.display = 'none';
+            startDateField.style.display = 'none';
+            endDateField.style.display = 'none';
+
+            // Tanlangan davrga qarab kerakli maydonni ko'rsatish
+            const selectedPeriod = periodSelect.value;
+            
+            if (selectedPeriod === 'daily') {
+                dayField.style.display = 'block';
+            } else if (selectedPeriod === 'monthly') {
+                monthField.style.display = 'block';
+            } else if (selectedPeriod === 'yearly') {
+                yearField.style.display = 'block';
+            } else if (selectedPeriod === 'custom') {
+                startDateField.style.display = 'block';
+                endDateField.style.display = 'block';
+            }
+        }
+
+        // Davr o'zgarganda maydonlarni yangilash
+        periodSelect.addEventListener('change', toggleFields);
+        
+        // Dynamic translation for Django-rendered selects
+        function localizeSelects() {
+            const periodOpts = document.querySelectorAll('#id_period option');
+            periodOpts.forEach(opt => { if(opt.value) opt.setAttribute('data-i18n', opt.value); });
+
+            const monthOpts = document.querySelectorAll('#id_month option');
+            const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+            monthOpts.forEach(opt => { 
+                if(opt.value && monthNames[opt.value-1]) opt.setAttribute('data-i18n', monthNames[opt.value-1]); 
+            });
+            
+            // Re-run translation to apply to newly attribute-injected elements
+            if (window.updatePageLanguage) {
+                const savedLang = localStorage.getItem('language') || 'uz';
+                updatePageLanguage(savedLang);
+            }
+        }
+
+        localizeSelects();
+
+        // Sahifa yuklanganda maydonlarni to'g'ri ko'rsatish
+        toggleFields();
+    });
+</script>
+{% endblock %}

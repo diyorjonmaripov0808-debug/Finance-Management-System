@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Chat" %}{% endblock %}
+
+{% block page_header %}<span data-i18n="messages">{% trans "Xabarlar" %}</span> - <span data-i18n="admin_with">{% trans "Admin bilan" %}</span>{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-user-shield me-2"></i>
+                    <strong data-i18n="admin_name">{% trans "Admin" %}</strong>
+                    <span class="badge bg-light text-dark ms-2" id="online_status" data-i18n="online">{% trans "Online" %}</span>
+                </div>
+                <div>
+                    <button class="btn btn-sm btn-light" id="refresh_chat">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Messages -->
+            <div class="card-body" style="height: 400px; overflow-y: auto;" id="chat_messages">
+                {% for message in chat_messages %}
+                <div class="chat-message {% if message.sender == user %}sent{% else %}received{% endif %} p-3 mb-2">
+                    <div class="message-content">
+                        {{ message.text }}
+                    </div>
+                    <div class="message-time text-end">
+                        {{ message.created_at|date:"H:i" }}
+                        {% if message.sender == user and message.is_read %}
+                        <i class="fas fa-check-double text-info ms-1"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5">
+                    <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                    <h5 data-i18n="no_messages">{% trans "Xabarlar yo'q" %}</h5>
+                    <p class="text-muted" data-i18n="start_chat_with_admin">{% trans "Admin bilan suhbatni boshlang" %}</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Chat Input -->
+            <div class="card-footer">
+                <form method="post" id="message_form">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        {{ form.text }}
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Info -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0" data-i18n="chat_info">{% trans "Chat ma'lumotlari" %}</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                        <i class="fas fa-user-shield fa-2x"></i>
+                    </div>
+                    <h5 class="mt-3 mb-0" data-i18n="admin_name">{% trans "Admin" %}</h5>
+                    <p class="text-muted" data-i18n="help_center">{% trans "Yordam markazi" %}</p>
+                </div>
+
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span data-i18n="messages_count">{% trans "Xabarlar soni" %}</span>
+                        <span class="badge bg-primary" id="chat_message_count">{{ chat_messages.count }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span data-i18n="last_activity">{% trans "So'nggi faollik" %}</span>
+                        <span class="badge bg-light text-dark" id="chat_last_activity">
+                            {% if chat_messages.last %}
+                            {{ chat_messages.last.created_at|date:"H:i" }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </span>
+                    </li>
+                </ul>
+
+                <div class="mt-3">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <small data-i18n="admin_reply_time_help">{% trans "Admin javobi odatda 24 soat ichida keladi" %}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="{% static 'js/chat.js' %}"></script>
+<script>
+    // Specific initialization for user chat metadata
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.chatManager) {
+            window.chatManager.metadataIds.push('chat_message_count', 'chat_last_activity');
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

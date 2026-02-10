@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}<span data-i18n="edit_category">Kategoriyani tahrirlash</span>{% endblock %}
+{% block page_header %}<span data-i18n="edit_category">Kategoriyani tahrirlash</span>{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">{{ category.name }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label" data-i18n="category_name">Kategoriya nomi</label>
+                        {{ form.name }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.type.id_for_label }}" class="form-label" data-i18n="category_type">Kategoriya turi</label>
+                        {{ form.type }}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'category_list' %}" class="btn btn-outline-secondary" data-i18n="back">Orqaga</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i> <span data-i18n="update">Yangilash</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

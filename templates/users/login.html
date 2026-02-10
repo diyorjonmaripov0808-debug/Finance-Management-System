@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}<span data-i18n="login">Tizimga kirish</span>{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0" data-i18n="login">Tizimga kirish</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.phone_number.id_for_label }}" class="form-label" data-i18n="phone_number">Telefon raqam</label>
+                        {{ form.phone_number }}
+                        {% if form.phone_number.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.phone_number.errors %}
+                            <small>{{ error }}</small><br>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.password.id_for_label }}" class="form-label" data-i18n="password">Parol</label>
+                        {{ form.password }}
+                        {% if form.password.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.password.errors %}
+                            <small>{{ error }}</small><br>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="rememberMe">
+                        <label class="form-check-label" for="rememberMe" data-i18n="remember_me">Meni eslab qol</label>
+                    </div>
+
+                    <div class="d-grid gap-2 mb-3">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i> <span data-i18n="login">Kirish</span>
+                        </button>
+                    </div>
+
+                    <div class="text-center">
+                        <a href="{% url 'forgot_password' %}" class="text-decoration-none" data-i18n="forgot_password">Parolni unutdingizmi?</a>
+                    </div>
+                </form>
+
+                <hr class="my-4">
+
+                <div class="text-center">
+                    <p><span data-i18n="no_account">Hisobingiz yo'qmi?</span> <a href="{% url 'register_step1' %}" class="text-decoration-none" data-i18n="register">Ro'yxatdan o'tish</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

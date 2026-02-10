@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block title %}<span data-i18n="add_expense">Chiqim Qo'shish</span> - Finance App{% endblock %}
+
+{% block page_header %}
+<i class="fas fa-minus-circle"></i> <span data-i18n="add_expense">Chiqim Qo'shish</span>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-arrow-down text-danger"></i> <span data-i18n="new_expense">Yangi Chiqim</span></h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="expenseForm">
+                    {% csrf_token %}
+
+                    <!-- Hamyon Tanlov -->
+                    <div class="mb-3">
+                        <label for="id_wallet" class="form-label"><span data-i18n="wallet">Hamyon</span> <span class="text-danger">*</span></label>
+                        {{ form.wallet }}
+                        {% if form.wallet.errors %}
+                            <div class="invalid-feedback d-block">{{ form.wallet.errors.0 }}</div>
+                        {% endif %}
+                        {% if not has_wallets %}
+                            <div class="alert alert-warning mt-2">
+                                <small><i class="fas fa-info-circle"></i> <span data-i18n="wallet_not_found_create_one">Hamyon mavjud emas. Avval hamyon yaratib oling.</span></small>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Hamyon Ma'lumotlar -->
+                    <div id="walletInfo" class="alert alert-info mb-3" style="display: none;">
+                        <strong id="walletSummary"></strong>
+                    </div>
+
+                    <!-- Kategoriya Tanlov -->
+                    <div class="mb-3">
+                        <label for="id_category" class="form-label"><span data-i18n="category">Kategoriya</span> <span class="text-danger">*</span></label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                            <div class="invalid-feedback d-block">{{ form.category.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Miqdor -->
+                    <div class="mb-3">
+                        <label for="id_amount" class="form-label"><span data-i18n="amount">Miqdor</span> <span class="text-danger">*</span></label>
+                        {{ form.amount }}
+                        <small class="text-muted d-block mt-1"><span data-i18n="balance_check">Balans tekshirish</span>: <span id="balanceCheck"></span></small>
+                        {% if form.amount.errors %}
+                            <div class="invalid-feedback d-block">{{ form.amount.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Valyuta -->
+                    <div class="mb-3">
+                        <label for="id_currency" class="form-label"><span data-i18n="currency">Valyuta</span> <span class="text-danger">*</span></label>
+                        {{ form.currency }}
+                        {% if form.currency.errors %}
+                            <div class="invalid-feedback d-block">{{ form.currency.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Exchange Rate -->
+                    <div class="mb-3" id="exchangeRateField" style="display: none;">
+                        <label for="id_exchange_rate" class="form-label"><span data-i18n="exchange_rate">Kurs</span> <span class="text-danger">*</span></label>
+                        <small class="text-muted d-block mb-2">
+                            1 <span id="fromCurrency">UZS</span> = <span id="exchangeRateValue">1</span> <span id="toCurrency">UZS</span>
+                        </small>
+                        {{ form.exchange_rate }}
+                        <small class="text-muted d-block mt-1"><span data-i18n="converted_amount">Konvert qilingan miqdor</span>: <span id="convertedAmount">0</span></small>
+                        {% if form.exchange_rate.errors %}
+                            <div class="invalid-feedback d-block">{{ form.exchange_rate.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Tavsif -->
+                    <div class="mb-3">
+                        <label for="id_description" class="form-label" data-i18n="description">Tavsif</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">{{ form.description.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Yaratilgan vaqt -->
+                    <div class="mb-4">
+                        <label for="id_created_at" class="form-label" data-i18n="created_at">Yaratilgan vaqt</label>
+                        {{ form.created_at }}
+                        <div class="form-text" data-i18n="created_at_help">Ixtiyoriy. Agar bo'sh qoldirilsa, hozirgi vaqt olinadi.</div>
+                        {% if form.created_at.errors %}
+                            <div class="invalid-feedback d-block">{{ form.created_at.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Form Errors -->
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Buttons -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-check"></i> <span data-i18n="add">Qo'shish</span>
+                        </button>
+                        <a href="{% url 'transaction_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> <span data-i18n="cancel">Bekor qilish</span>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const walletsData = {{ wallets_data|safe }} || {};
+    console.log('Wallets Data:', walletsData);
+
+    function updateWalletInfo() {
+        const walletSelect = document.getElementById('id_wallet');
+        const selectedWalletId = walletSelect.value;
+        const walletInfo = document.getElementById('walletInfo');
+        const walletSummary = document.getElementById('walletSummary');
+
+        if (selectedWalletId && walletsData[selectedWalletId]) {
+            const wallet = walletsData[selectedWalletId];
+            let summary = '';
+            if (wallet.wallet_type === 'naqd') {
+                summary = `Naqd : ${parseFloat(wallet.balance).toFixed(2)} (${wallet.currency})`;
+            } else if (wallet.wallet_type === 'karta') {
+                summary = `${wallet.title} (${wallet.card_type}): ${parseFloat(wallet.balance).toFixed(2)} (${wallet.currency})`;
+            }
+            walletSummary.textContent = summary;
+            walletInfo.style.display = 'block';
+            document.getElementById('id_currency').value = wallet.currency;
+            updateExchangeRateVisibility();
+            checkBalance();
+        } else {
+            walletInfo.style.display = 'none';
+        }
+    }
+
+    function updateExchangeRateVisibility() {
+        const walletSelect = document.getElementById('id_wallet');
+        const currencySelect = document.getElementById('id_currency');
+        const exchangeRateField = document.getElementById('exchangeRateField');
+        const selectedWalletId = walletSelect.value;
+        const selectedCurrency = currencySelect.value;
+
+        if (selectedWalletId && walletsData[selectedWalletId]) {
+            const wallet = walletsData[selectedWalletId];
+            
+            if (selectedCurrency === wallet.currency) {
+                exchangeRateField.style.display = 'none';
+                document.getElementById('id_exchange_rate').value = '';
+            } else {
+                exchangeRateField.style.display = 'block';
+                document.getElementById('fromCurrency').textContent = selectedCurrency;
+                document.getElementById('toCurrency').textContent = wallet.currency;
+            }
+        }
+        
+        checkBalance();
+    }
+
+    function checkBalance() {
+        const walletSelect = document.getElementById('id_wallet');
+        const amountInput = document.getElementById('id_amount');
+        const exchangeRateInput = document.getElementById('id_exchange_rate');
+        const balanceCheckSpan = document.getElementById('balanceCheck');
+        const selectedWalletId = walletSelect.value;
+        const amount = parseFloat(amountInput.value) || 0;
+
+        if (selectedWalletId && walletsData[selectedWalletId]) {
+            const wallet = walletsData[selectedWalletId];
+            const balance = parseFloat(wallet.balance);
+            
+            let checkAmount = amount;
+            const exchangeRate = exchangeRateInput.value ? parseFloat(exchangeRateInput.value) : null;
+            
+            if (exchangeRate && exchangeRate > 0) {
+                checkAmount = amount * parseFloat(exchangeRate);
+                document.getElementById('convertedAmount').textContent = checkAmount.toFixed(2) + ' ' + wallet.currency;
+            } else {
+                document.getElementById('convertedAmount').textContent = '0';
+            }
+
+            if (balance >= checkAmount && checkAmount > 0) {
+                balanceCheckSpan.textContent = '✅ ' + t('sufficient_funds') + ' (' + balance.toFixed(2) + ' ' + wallet.currency + ')';
+                balanceCheckSpan.style.color = 'green';
+            } else if (checkAmount > 0) {
+                balanceCheckSpan.textContent = '❌ ' + t('insufficient_funds') + ' (' + t('required') + ': ' + checkAmount.toFixed(2) + ', ' + t('available') + ': ' + balance.toFixed(2) + ')';
+                balanceCheckSpan.style.color = 'red';
+            } else {
+                balanceCheckSpan.textContent = t('amount_required');
+                balanceCheckSpan.style.color = 'gray';
+            }
+        }
+    }
+
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        const walletSelect = document.getElementById('id_wallet');
+        const amountInput = document.getElementById('id_amount');
+        const exchangeRateInput = document.getElementById('id_exchange_rate');
+        const currencySelect = document.getElementById('id_currency');
+
+        walletSelect.addEventListener('change', updateWalletInfo);
+        amountInput.addEventListener('input', checkBalance);
+        exchangeRateInput.addEventListener('input', checkBalance);
+        currencySelect.addEventListener('change', updateExchangeRateVisibility);
+
+        // Automatically show wallet info if a wallet is already selected
+        updateWalletInfo();
+    });
+</script>
+{% endblock %}

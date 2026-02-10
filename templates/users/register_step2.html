@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}<span data-i18n="register">Ro'yxatdan o'tish</span> - <span data-i18n="step">qadam</span> 2{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><span data-i18n="register">Ro'yxatdan o'tish</span> - 2-<span data-i18n="step">qadam</span></h4>
+                <p class="mb-0" data-i18n="otp_help">Telefoningizga yuborilgan kodni kiriting</p>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="alert alert-info">
+                        <i class="fas fa-mobile-alt me-2"></i>
+                        <strong>{{ phone_number }}</strong> <span data-i18n="otp_sent_to">raqamiga kod yuborildi</span>
+                    </div>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3 text-center">
+                        <label for="{{ form.verification_code.id_for_label }}" class="form-label" data-i18n="code_6_digits">6-xonali kod</label>
+                        {{ form.verification_code }}
+                        {% if form.verification_code.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.verification_code.errors %}
+                            <small>{{ error }}</small><br>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid gap-2 mb-3">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-check-circle me-2"></i> <span data-i18n="submit">Tasdiqlash</span>
+                        </button>
+                    </div>
+
+                    <div class="text-center">
+                        <a href="{% url 'resend_otp' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-redo me-2"></i> <span data-i18n="resend_otp">Kodni qayta yuborish</span>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-focus on code input
+        const codeInput = document.querySelector('#id_verification_code');
+        if (codeInput) {
+            codeInput.focus();
+        }
+
+        // Auto move between inputs (for 6 digit code)
+        const inputs = document.querySelectorAll('input[type="text"]');
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', function(e) {
+                if (this.value.length === 1 && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            });
+
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && this.value.length === 0 && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

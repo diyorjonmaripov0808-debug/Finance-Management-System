@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load finance_filters %}
+
+{% block title %}<span data-i18n="wallets">Hamyonlar</span>{% endblock %}
+
+{% block page_header %}<span data-i18n="wallets">Hamyonlar</span>{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'wallet_create' %}" class="btn btn-primary">
+    <i class="fas fa-plus me-2"></i> <span data-i18n="add_wallet">Yangi hamyon</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    {% for wallet in wallets %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card {% if wallet.wallet_type == 'karta' %}border-primary{% else %}border-success{% endif %} h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-{% if wallet.wallet_type == 'karta' %}credit-card{% else %}money-bill{% endif %} me-2"></i>
+                    {{ wallet.get_wallet_type_display }}
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'wallet_update' wallet.id %}"><i class="fas fa-edit me-2"></i><span data-i18n="edit">Tahrirlash</span></a></li>
+                        <li><a class="dropdown-item text-danger" href="{% url 'wallet_delete' wallet.id %}"><i class="fas fa-trash me-2"></i><span data-i18n="delete">O'chirish</span></a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">
+                    {% if wallet.title %}
+                    {{ wallet.title }}
+                    {% else %}
+                    {{ wallet.get_wallet_type_display }}
+                    {% endif %}
+                </h5>
+
+                {% if wallet.card_type %}
+                <p class="card-text">
+                    <i class="fas fa-credit-card me-2"></i>
+                    {{ wallet.get_card_type_display }}
+                </p>
+                {% endif %}
+
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div>
+                        <span class="badge bg-light text-dark">{{ wallet.currency }}</span>
+                    </div>
+                    <h4 class="mb-0">{{ wallet.balance|floatformat:2 }} <small>{{ wallet.currency }}</small></h4>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <small class="text-muted">
+                    {{ wallet.created_at|date:"d.m.Y" }} <span data-i18n="created_at_text">da yaratilgan</span>
+                </small>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-wallet fa-4x text-muted mb-3"></i>
+                <h4 data-i18n="no_wallets">Hamyonlar mavjud emas</h4>
+                <p class="text-muted" data-i18n="add_wallet">Birinchi hamyonni yaratish uchun quyidagi tugmani bosing</p>
+                <a href="{% url 'wallet_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i> <span data-i18n="create">Hamyon yaratish</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Total Balance (per currency) -->
+{% if balance_by_currency %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 data-i18n="total_balance">Umumiy balans</h5>
+                        <p class="text-muted" data-i18n="total_balance">Barcha hamyonlardagi umumiy mablag' (valyutalar bo'yicha)</p>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        {% for currency, amount in balance_by_currency.items %}
+                        <h4 class="mb-1">{{ currency }}: <strong>{{ amount|floatformat:2 }}</strong></h4>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}{% endblock %}
