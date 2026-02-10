@@ -1,4 +1,3 @@
-# base/templatetags/finance_filters.py
 from django import template
 from django.db.models import Sum, Q
 from decimal import Decimal
